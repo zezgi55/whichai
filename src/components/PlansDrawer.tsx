@@ -1,29 +1,27 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X,
   ShieldAlert,
   Check,
   Plus,
   Trash2,
-  Sliders,
-  KeyRound,
   RefreshCw,
-  Sparkles,
   ExternalLink,
+  X,
+  Wand2,
 } from 'lucide-react';
-import { AIToolDefinition, LiveApiConfig, ThemeMode, UserPlanSelection } from '../types';
+import { AIToolDefinition, Language, UserPlanSelection } from '../types';
 import { DEFAULT_AI_CATALOG } from '../data/aiCatalog';
+import { TRANSLATIONS } from '../i18n/translations';
+import { RetroFolderIcon, RetroWindowControls } from './AtmosphereDecor';
 
 interface PlansDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  theme: ThemeMode;
+  lang: Language;
   userPlans: UserPlanSelection[];
   onUpdatePlans: (plans: UserPlanSelection[]) => void;
   onOpenOnboarding: () => void;
-  liveApiConfig: LiveApiConfig;
-  onUpdateLiveApiConfig: (cfg: LiveApiConfig) => void;
   onReanalyzeLast?: () => void;
   hasMessages?: boolean;
 }
@@ -31,21 +29,33 @@ interface PlansDrawerProps {
 export const PlansDrawer: React.FC<PlansDrawerProps> = ({
   isOpen,
   onClose,
-  theme,
+  lang,
   userPlans,
   onUpdatePlans,
   onOpenOnboarding,
-  liveApiConfig,
-  onUpdateLiveApiConfig,
   onReanalyzeLast,
   hasMessages = false,
 }) => {
-  const [activeTab, setActiveTab] = useState<'plans' | 'custom' | 'api'>('plans');
+  const t = TRANSLATIONS[lang];
+  const [activeTab, setActiveTab] = useState<'plans' | 'custom'>('plans');
   const [customName, setCustomName] = useState('');
   const [customTierLabel, setCustomTierLabel] = useState('Pro');
+  const [customSubModel, setCustomSubModel] = useState('');
   const [customUrl, setCustomUrl] = useState('https://');
   const [customIsPaid, setCustomIsPaid] = useState(true);
-  const [customStrength, setCustomStrength] = useState<'coding' | 'writing' | 'research' | 'reasoning' | 'visual' | 'long_context'>('coding');
+  const [customStrength, setCustomStrength] = useState<
+    'coding' | 'writing' | 'research' | 'reasoning' | 'visual' | 'long_context'
+  >('coding');
+  const [subDraftByTool, setSubDraftByTool] = useState<Record<string, string>>({});
+
+  const strengthOptions = [
+    { id: 'coding', label: t.strengthCoding },
+    { id: 'writing', label: t.strengthWriting },
+    { id: 'research', label: t.strengthResearch },
+    { id: 'reasoning', label: t.strengthReasoning },
+    { id: 'visual', label: t.strengthVisual },
+    { id: 'long_context', label: t.strengthLongContext },
+  ] as const;
 
   const allTools: AIToolDefinition[] = [
     ...DEFAULT_AI_CATALOG,
@@ -57,18 +67,26 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
 
   const toggleTool = (toolId: string) => {
     const exists = userPlans.find((p) => p.toolId === toolId);
+    const def = allTools.find((item) => item.id === toolId);
     if (exists) {
       onUpdatePlans(userPlans.map((p) => (p.toolId === toolId ? { ...p, enabled: !p.enabled } : p)));
     } else {
-      const def = allTools.find((t) => t.id === toolId);
       onUpdatePlans([
         ...userPlans,
-        { toolId, enabled: true, tierId: def?.tiers[0]?.id ?? 'free', quotaReached: false },
+        {
+          toolId,
+          enabled: true,
+          tierId: def?.tiers[0]?.id ?? 'free',
+          quotaReached: false,
+          enabledSubModelIds: def?.subModels.map((s) => s.id) ?? [],
+        },
       ]);
     }
   };
 
   const changeTier = (toolId: string, tierId: string) => {
+    const def = allTools.find((item) => item.id === toolId);
+    const targetTier = def?.tiers.find((tr) => tr.id === tierId);
     onUpdatePlans(
       userPlans.map((p) =>
         p.toolId === toolId
@@ -76,7 +94,16 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
               ...p,
               enabled: true,
               tierId,
-              customTierName: tierId === 'custom' ? p.customTierName || 'Özel Plan' : undefined,
+              customTierName:
+                tierId === 'custom'
+                  ? p.customTierName || (lang === 'tr' ? 'Özel Plan' : 'Custom Plan')
+                  : undefined,
+              enabledSubModelIds:
+                def && targetTier
+                  ? def.subModels
+                      .filter((sm) => targetTier.isPaid || !sm.minPaid)
+                      .map((sm) => sm.id)
+                  : p.enabledSubModelIds,
             }
           : p
       )
@@ -87,8 +114,43 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
     onUpdatePlans(userPlans.map((p) => (p.toolId === toolId ? { ...p, customTierName: name } : p)));
   };
 
+  const toggleSubModel = (toolId: string, subId: string) => {
+    const def = allTools.find((item) => item.id === toolId);
+    onUpdatePlans(
+      userPlans.map((p) => {
+        if (p.toolId !== toolId) return p;
+        const curr = p.enabledSubModelIds ?? def?.subModels.map((s) => s.id) ?? [];
+        const next = curr.includes(subId) ? curr.filter((x) => x !== subId) : [...curr, subId];
+        return { ...p, enabledSubModelIds: next.length > 0 ? next : curr };
+      })
+    );
+  };
+
+  const addCustomSubModel = (toolId: string) => {
+    const val = (subDraftByTool[toolId] ?? '').trim();
+    if (!val) return;
+    onUpdatePlans(
+      userPlans.map((p) =>
+        p.toolId === toolId ? { ...p, customSubModels: [...(p.customSubModels ?? []), val] } : p
+      )
+    );
+    setSubDraftByTool((prev) => ({ ...prev, [toolId]: '' }));
+  };
+
+  const removeCustomSubModel = (toolId: string, subName: string) => {
+    onUpdatePlans(
+      userPlans.map((p) =>
+        p.toolId === toolId
+          ? { ...p, customSubModels: (p.customSubModels ?? []).filter((s) => s !== subName) }
+          : p
+      )
+    );
+  };
+
   const toggleQuota = (toolId: string) => {
-    onUpdatePlans(userPlans.map((p) => (p.toolId === toolId ? { ...p, quotaReached: !p.quotaReached } : p)));
+    onUpdatePlans(
+      userPlans.map((p) => (p.toolId === toolId ? { ...p, quotaReached: !p.quotaReached } : p))
+    );
   };
 
   const resetAllQuotas = () => {
@@ -107,15 +169,18 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
       customUrl.trim().startsWith('http://') || customUrl.trim().startsWith('https://')
         ? customUrl.trim()
         : 'https://chat.openai.com';
+    const subLabel = customSubModel.trim() || `${customName.trim()} Standard`;
 
     const newTool: AIToolDefinition = {
       id,
       name: customName.trim(),
-      provider: 'Özel Araç',
+      provider: lang === 'tr' ? 'Özel Araç' : 'Custom Tool',
       url: safeUrl,
-      accentColor: '#d946ef',
-      badgeText: 'Özel Tanımlı Model',
-      tagline: 'Kullanıcı tarafından eklenen özel AI aracı',
+      accentColor: '#ec4899',
+      badgeTextTr: 'Özel Tanımlı Model',
+      badgeTextEn: 'Custom Defined Model',
+      taglineTr: 'Kullanıcı tarafından eklenen özel AI aracı',
+      taglineEn: 'User-defined custom AI tool',
       promptStyle: 'generic',
       isCustom: true,
       scores: {
@@ -129,14 +194,28 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
         speed: 8.6,
         valueFree: customIsPaid ? 7.2 : 9.4,
       },
+      subModels: [
+        {
+          id: `${id}_sub`,
+          name: subLabel,
+          effort: 'balanced',
+          minPaid: false,
+          creditTagTr: customIsPaid ? 'Ücretli Alt Model' : 'Ücretsiz Alt Model',
+          creditTagEn: customIsPaid ? 'Paid Sub-Model' : 'Free Sub-Model',
+          bestForTr: 'Özel tanımlanan görevler',
+          bestForEn: 'Custom tasks',
+        },
+      ],
       tiers: [
         {
           id: 'custom_tier',
-          label: customTierLabel.trim() || (customIsPaid ? 'Pro' : 'Ücretsiz'),
+          labelTr: customTierLabel.trim() || (customIsPaid ? 'Pro' : 'Ücretsiz'),
+          labelEn: customTierLabel.trim() || (customIsPaid ? 'Pro' : 'Free'),
           isPaid: customIsPaid,
           qualityBoost: customIsPaid ? 0.65 : 0,
           creditWeight: customIsPaid ? 2 : 0,
-          constraints: ['Özel eklenen model — limitlerini buradan anlık yönetebilirsin.'],
+          constraintsTr: ['Özel eklenen model — limitlerini buradan anlık yönetebilirsin.'],
+          constraintsEn: ['Custom model — manage quota status right here.'],
         },
       ],
     };
@@ -149,12 +228,14 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
         tierId: 'custom_tier',
         customTierName: customTierLabel.trim() || undefined,
         quotaReached: false,
+        enabledSubModelIds: [`${id}_sub`],
         customTool: newTool,
       },
     ]);
 
     setCustomName('');
     setCustomTierLabel('Pro');
+    setCustomSubModel('');
     setCustomUrl('https://');
     setActiveTab('plans');
   };
@@ -168,63 +249,51 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-xs"
+            className="fixed inset-0 z-40 bg-[#141a35]/45"
           />
 
           <motion.aside
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="glass-panel fixed top-0 right-0 bottom-0 z-50 w-full max-w-md flex flex-col border-l border-white/60 dark:border-purple-300/20 shadow-2xl"
+            transition={{ type: 'spring', damping: 30, stiffness: 320 }}
+            className="fixed top-2 right-2 bottom-2 z-50 w-[calc(100%-16px)] max-w-md retro-window flex flex-col overflow-hidden"
           >
-            {/* Header */}
-            <div className="px-5 pt-5 pb-4 border-b border-indigo-200/60 dark:border-purple-300/15">
-              {theme === 'light' && (
-                <div className="flex items-center gap-1.5 mb-2.5">
-                  <span className="y2k-dot bg-gradient-to-br from-pink-300 to-purple-300" />
-                  <span className="y2k-dot bg-gradient-to-br from-sky-200 to-blue-300" />
-                  <span className="y2k-dot bg-gradient-to-br from-indigo-200 to-violet-300" />
-                  <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600/75">
-                    AI_Planlarım.sys
-                  </span>
-                </div>
-              )}
+            {/* Retro Title Bar */}
+            <div className="retro-titlebar">
+              <div className="flex items-center gap-2 min-w-0">
+                <RetroFolderIcon accent className="w-4 h-4 shrink-0" />
+                <span className="font-retro text-xs font-bold text-[#1b2544] dark:text-[#eef2ff] truncate">
+                  {t.drawerWindowTitle}
+                </span>
+              </div>
+              <RetroWindowControls onClose={onClose} />
+            </div>
 
-              <div className="flex items-center justify-between">
+            {/* Sub-Header + Folder Tabs */}
+            <div className="px-4 pt-3.5 pb-3 border-b border-[var(--win-border-soft)] bg-[var(--win-bg-soft)]">
+              <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-purple-600 dark:text-fuchsia-300" />
-                    AI Planlarım &amp; Kotalar
+                  <h3 className="font-retro text-sm font-bold text-[var(--ink-primary)]">
+                    {t.myPlansAndQuotas}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-purple-200/70 mt-0.5">
-                    {activeCount} aktif model · {quotaCount} kota dolu
+                  <p className="text-[11px] text-[var(--ink-secondary)]">
+                    {activeCount} {t.activeModels} · {quotaCount} {t.quotaFullCount}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="p-2 rounded-full glass-pill text-slate-600 dark:text-purple-200 cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
               </div>
 
-              {/* Tabs */}
-              <div className="mt-4 grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-white/50 dark:bg-black/30 border border-indigo-200/60 dark:border-purple-300/15">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
-                  { id: 'plans', label: 'Plan & Kota' },
-                  { id: 'custom', label: '+ Özel Araç' },
-                  { id: 'api', label: 'Canlı API' },
+                  { id: 'plans', label: t.tabPlans },
+                  { id: 'custom', label: t.tabCustom },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                    className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      activeTab === tab.id
-                        ? 'liquid-glow-primary text-white'
-                        : 'text-slate-600 dark:text-purple-200/80 hover:text-slate-900 dark:hover:text-white'
+                    onClick={() => setActiveTab(tab.id as 'plans' | 'custom')}
+                    className={`py-1.5 text-xs font-retro font-bold cursor-pointer ${
+                      activeTab === tab.id ? 'retro-btn-accent' : 'retro-btn'
                     }`}
                   >
                     {tab.label}
@@ -234,23 +303,23 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-              {activeTab === 'plans' && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {activeTab === 'plans' ? (
                 <>
                   {quotaCount > 0 && (
-                    <div className="rounded-2xl p-3 bg-amber-500/12 border border-amber-400/40 flex items-center justify-between gap-2">
-                      <div className="text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 shrink-0 text-amber-500" />
+                    <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/35 border-[1.5px] border-amber-500 flex items-center justify-between gap-2">
+                      <div className="text-xs text-amber-900 dark:text-amber-100 flex items-start gap-2">
+                        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-300" />
                         <span>
-                          <strong>{quotaCount} model</strong> geçici olarak devre dışı. Öneriler aktif alternatiflerine yönlendirilir.
+                          <strong>{quotaCount}</strong> {t.quotaBannerPrefix}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={resetAllQuotas}
-                        className="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                        className="retro-btn px-2.5 py-1 text-[11px] font-bold shrink-0 cursor-pointer"
                       >
-                        Sıfırla
+                        {t.resetQuotas}
                       </button>
                     </div>
                   )}
@@ -261,25 +330,25 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                     const isQuota = sel?.quotaReached ?? false;
                     const currentTierId = sel?.tierId ?? tool.tiers[0].id;
                     const isCustomTierMode = Boolean(sel?.customTierName !== undefined);
+                    const enabledSubIds =
+                      sel?.enabledSubModelIds ?? tool.subModels.map((s) => s.id);
 
                     return (
                       <div
                         key={tool.id}
-                        className={`liquid-card rounded-2xl p-3.5 transition ${
-                          !isEnabled ? 'opacity-60' : isQuota ? 'ring-1 ring-amber-400/65' : ''
-                        }`}
+                        className={`retro-window-sm p-3 ${!isEnabled ? 'opacity-60' : ''}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => toggleTool(tool.id)}
-                            className="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
+                            className="flex items-center gap-2.5 text-left flex-1 cursor-pointer min-w-0"
                           >
                             <div
-                              className={`w-5 h-5 rounded-md flex items-center justify-center border shrink-0 ${
+                              className={`w-5 h-5 rounded-sm flex items-center justify-center border-[1.5px] shrink-0 ${
                                 isEnabled
-                                  ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 border-white/60 text-white'
-                                  : 'border-slate-300 dark:border-purple-300/30 bg-white/40 dark:bg-white/5'
+                                  ? 'bg-[#3a56a8] dark:bg-[#5b72d6] border-[#2c3b68] dark:border-[#c7d2fe] text-white'
+                                  : 'bg-[var(--win-bg)] border-[var(--win-border)]'
                               }`}
                             >
                               {isEnabled && <Check className="w-3 h-3 stroke-[3]" />}
@@ -287,31 +356,30 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <span
-                                  className="w-2 h-2 rounded-full shrink-0"
+                                  className="w-2.5 h-2.5 rounded-xs border border-[#2c3b68] shrink-0"
                                   style={{ backgroundColor: tool.accentColor }}
                                 />
-                                <span className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                <span className="font-retro font-bold text-xs text-[var(--ink-primary)] truncate">
                                   {tool.name}
                                 </span>
                                 {isEnabled && isQuota && (
-                                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                                    Kota Dolu
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-200 dark:bg-amber-800/60 text-amber-900 dark:text-amber-100">
+                                    {t.quotaFull}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-slate-500 dark:text-purple-200/65 truncate">
-                                {tool.badgeText}
+                              <p className="text-[11px] text-[var(--ink-muted)] truncate">
+                                {lang === 'tr' ? tool.badgeTextTr : tool.badgeTextEn}
                               </p>
                             </div>
                           </button>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 shrink-0">
                             <a
                               href={tool.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-purple-200 transition"
-                              title={`${tool.name} sitesini aç`}
+                              className="p-1 text-[var(--ink-muted)] hover:text-[var(--ink-primary)]"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
@@ -319,7 +387,7 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                               <button
                                 type="button"
                                 onClick={() => removeCustomTool(tool.id)}
-                                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                                className="p-1 text-rose-500 cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -328,7 +396,8 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                         </div>
 
                         {isEnabled && (
-                          <div className="mt-3 pt-2.5 border-t border-indigo-200/50 dark:border-purple-300/15 space-y-2.5">
+                          <div className="mt-2.5 pt-2.5 retro-divider space-y-2.5">
+                            {/* Tiers */}
                             <div className="flex flex-wrap gap-1.5">
                               {tool.tiers.map((tier) => {
                                 const selected = !isCustomTierMode && currentTierId === tier.id;
@@ -337,13 +406,11 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                                     key={tier.id}
                                     type="button"
                                     onClick={() => changeTier(tool.id, tier.id)}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer ${
-                                      selected
-                                        ? 'liquid-glow-primary text-white'
-                                        : 'bg-white/70 dark:bg-white/8 text-slate-700 dark:text-purple-100 border border-indigo-200/70 dark:border-purple-300/20'
+                                    className={`px-2 py-0.5 text-[11px] font-bold cursor-pointer ${
+                                      selected ? 'retro-btn-accent' : 'retro-btn'
                                     }`}
                                   >
-                                    {tier.label}
+                                    {lang === 'tr' ? tier.labelTr : tier.labelEn}
                                   </button>
                                 );
                               })}
@@ -351,13 +418,11 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => changeTier(tool.id, 'custom')}
-                                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer ${
-                                    isCustomTierMode
-                                      ? 'liquid-glow-primary text-white'
-                                      : 'bg-white/40 dark:bg-white/5 text-slate-600 dark:text-purple-200 border border-dashed border-indigo-300 dark:border-purple-300/30'
+                                  className={`px-2 py-0.5 text-[11px] font-bold cursor-pointer ${
+                                    isCustomTierMode ? 'retro-btn-accent' : 'retro-btn'
                                   }`}
                                 >
-                                  Özel
+                                  {t.customTierBtn}
                                 </button>
                               )}
                             </div>
@@ -367,35 +432,101 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                                 type="text"
                                 value={sel?.customTierName ?? ''}
                                 onChange={(e) => changeCustomTierName(tool.id, e.target.value)}
-                                placeholder="Özel plan adı (Örn: Ultra, Team...)"
-                                className="w-full px-3 py-1.5 text-xs rounded-xl bg-white/85 dark:bg-black/35 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                                placeholder={t.customTierPlaceholder}
+                                className="retro-input w-full px-2.5 py-1 text-xs"
                               />
                             )}
 
-                            {/* One-click Quota Reached Switch */}
+                            {/* Sub-models */}
+                            <div className="space-y-1.5">
+                              <span className="block font-retro text-[10px] font-bold uppercase text-[var(--ink-muted)]">
+                                {t.subModelsLabel}
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {tool.subModels.map((sm) => {
+                                  const on = enabledSubIds.includes(sm.id);
+                                  return (
+                                    <button
+                                      key={sm.id}
+                                      type="button"
+                                      onClick={() => toggleSubModel(tool.id, sm.id)}
+                                      className={`px-2 py-0.5 rounded text-[11px] font-medium border cursor-pointer ${
+                                        on
+                                          ? 'bg-[#dde7ff] dark:bg-[#2f3c73] text-[#1b2544] dark:text-[#eef2ff] border-[#2c3b68] dark:border-[#9cb0f0]'
+                                          : 'bg-transparent text-[var(--ink-muted)] border-dashed border-[var(--win-border-soft)] opacity-70'
+                                      }`}
+                                    >
+                                      {on ? '✓ ' : '+ '}
+                                      {sm.name}
+                                    </button>
+                                  );
+                                })}
+                                {(sel?.customSubModels ?? []).map((cs) => (
+                                  <span
+                                    key={cs}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-[#fce7f3] dark:bg-[#f472b6]/20 text-[#be185d] dark:text-[#fbcfe8] border border-[#f472b6]"
+                                  >
+                                    {cs}
+                                    <button
+                                      type="button"
+                                      onClick={() => removeCustomSubModel(tool.id, cs)}
+                                      className="cursor-pointer"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="flex gap-1.5">
+                                <input
+                                  type="text"
+                                  value={subDraftByTool[tool.id] ?? ''}
+                                  onChange={(e) =>
+                                    setSubDraftByTool((prev) => ({
+                                      ...prev,
+                                      [tool.id]: e.target.value,
+                                    }))
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      addCustomSubModel(tool.id);
+                                    }
+                                  }}
+                                  placeholder={t.addCustomSubModelPlaceholder}
+                                  className="retro-input flex-1 px-2 py-1 text-[11px]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => addCustomSubModel(tool.id)}
+                                  className="retro-btn px-2 py-1 text-[11px] font-bold cursor-pointer"
+                                >
+                                  {t.addBtn}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Quota Reached Toggle */}
                             <div
                               onClick={() => toggleQuota(tool.id)}
-                              className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition ${
+                              className={`flex items-center justify-between px-2.5 py-1.5 rounded-md border cursor-pointer ${
                                 isQuota
-                                  ? 'bg-amber-500/18 border border-amber-400/45'
-                                  : 'bg-white/45 dark:bg-white/5 border border-indigo-100 dark:border-purple-300/12 hover:border-purple-300/40'
+                                  ? 'bg-amber-100 dark:bg-amber-900/35 border-amber-500 text-amber-900 dark:text-amber-100'
+                                  : 'bg-[var(--win-bg-soft)] border-[var(--win-border-soft)] text-[var(--ink-secondary)]'
                               }`}
                             >
-                              <span className="text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-purple-100">
-                                <ShieldAlert
-                                  className={`w-3.5 h-3.5 ${
-                                    isQuota ? 'text-amber-500' : 'text-slate-400 dark:text-purple-300/50'
-                                  }`}
-                                />
-                                Şu an limitim doldu
+                              <span className="text-xs font-semibold flex items-center gap-1.5">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                {t.quotaReachedLabel}
                               </span>
                               <div
-                                className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
-                                  isQuota ? 'bg-amber-500' : 'bg-slate-300 dark:bg-purple-950'
+                                className={`w-8 h-4 rounded-full p-0.5 border border-[#2c3b68] transition-colors ${
+                                  isQuota ? 'bg-amber-400' : 'bg-slate-300 dark:bg-slate-700'
                                 }`}
                               >
                                 <div
-                                  className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                                  className={`w-2.5 h-2.5 rounded-full bg-white transition-transform ${
                                     isQuota ? 'translate-x-4' : 'translate-x-0'
                                   }`}
                                 />
@@ -407,82 +538,56 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                     );
                   })}
                 </>
-              )}
-
-              {activeTab === 'custom' && (
-                <form onSubmit={handleAddCustom} className="liquid-card rounded-2xl p-4 space-y-3.5">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-fuchsia-500" />
-                      Özel Yapay Zeka Aracı Ekle
-                    </h4>
-                    <p className="text-xs text-slate-600 dark:text-purple-200/70 mt-1">
-                      Kullandığın yerel bir model, kurumsal AI veya listede olmayan herhangi bir aboneliği ekle.
-                    </p>
-                  </div>
+              ) : (
+                <form onSubmit={handleAddCustom} className="retro-window-sm p-4 space-y-3">
+                  <h4 className="font-retro text-xs font-bold text-[var(--ink-primary)] flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-[#ec4899]" />
+                    {t.customToolHeading}
+                  </h4>
 
                   <div className="space-y-2.5">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        Araç / Model Adı
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value)}
-                        placeholder="Örn: Mistral Le Chat, Poe, v0, Lovable..."
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/35 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder={t.toolNamePlaceholder}
+                      className="retro-input w-full px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={customTierLabel}
+                      onChange={(e) => setCustomTierLabel(e.target.value)}
+                      placeholder={t.planNamePlaceholder}
+                      className="retro-input w-full px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={customSubModel}
+                      onChange={(e) => setCustomSubModel(e.target.value)}
+                      placeholder={t.subModelNamePlaceholder}
+                      className="retro-input w-full px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={customUrl}
+                      onChange={(e) => setCustomUrl(e.target.value)}
+                      placeholder={t.urlPlaceholder}
+                      className="retro-input w-full px-2.5 py-1.5 text-xs"
+                    />
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        Plan / Sürüm Adı
-                      </label>
-                      <input
-                        type="text"
-                        value={customTierLabel}
-                        onChange={(e) => setCustomTierLabel(e.target.value)}
-                        placeholder="Örn: Pro, Ultra, Kurumsal, Ücretsiz"
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/35 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        Web Adresi (Tek tıkla açmak için)
-                      </label>
-                      <input
-                        type="text"
-                        value={customUrl}
-                        onChange={(e) => setCustomUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/35 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1.5">
-                        En Güçlü Olduğu Alan
-                      </label>
+                      <span className="block text-[11px] font-bold text-[var(--ink-muted)] mb-1.5">
+                        {t.strongAreaLabel}
+                      </span>
                       <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { id: 'coding', label: 'Kodlama' },
-                          { id: 'writing', label: 'Yazım' },
-                          { id: 'research', label: 'Araştırma' },
-                          { id: 'reasoning', label: 'Muhakeme' },
-                          { id: 'visual', label: 'Görsel' },
-                          { id: 'long_context', label: 'Uzun Doküman' },
-                        ].map((opt) => (
+                        {strengthOptions.map((opt) => (
                           <button
                             key={opt.id}
                             type="button"
-                            onClick={() => setCustomStrength(opt.id as typeof customStrength)}
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer ${
-                              customStrength === opt.id
-                                ? 'liquid-glow-primary text-white'
-                                : 'bg-white/70 dark:bg-white/8 text-slate-700 dark:text-purple-200'
+                            onClick={() => setCustomStrength(opt.id)}
+                            className={`px-2 py-0.5 text-[11px] font-bold cursor-pointer ${
+                              customStrength === opt.id ? 'retro-btn-accent' : 'retro-btn'
                             }`}
                           >
                             {opt.label}
@@ -491,129 +596,29 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                       </div>
                     </div>
 
-                    <label className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-purple-100 pt-1 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer pt-1">
                       <input
                         type="checkbox"
                         checked={customIsPaid}
                         onChange={(e) => setCustomIsPaid(e.target.checked)}
-                        className="rounded accent-purple-600"
+                        className="accent-[#ec4899]"
                       />
-                      Ücretli abonelik (Kredi Tasarrufu modunda önceliği dengeler)
+                      {t.paidPlanCheckbox}
                     </label>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full liquid-glow-primary py-2.5 rounded-full text-xs font-bold cursor-pointer"
+                    className="w-full retro-btn-primary py-2 font-retro text-xs font-bold cursor-pointer"
                   >
-                    Aracı Planlarıma Ekle
+                    {t.addToListBtn}
                   </button>
                 </form>
               )}
-
-              {activeTab === 'api' && (
-                <div className="liquid-card rounded-2xl p-4 space-y-3.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <KeyRound className="w-4 h-4 text-purple-500 dark:text-sky-300" />
-                        Opsiyonel Canlı LLM Motoru
-                      </h4>
-                      <p className="text-xs text-slate-600 dark:text-purple-200/75 mt-1">
-                        Uygulama yerleşik akıllı motoruyla API anahtarı olmadan anında çalışır. İstersen kendi Gemini veya OpenAI API anahtarını bağlayarak canlı prompt iyileştirme alabilirsin.
-                      </p>
-                    </div>
-                  </div>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl bg-white/55 dark:bg-white/5 border border-indigo-200/70 dark:border-purple-300/15 cursor-pointer">
-                    <span className="text-xs font-bold text-slate-800 dark:text-purple-100">
-                      Canlı LLM API Kullan
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={liveApiConfig.enabled}
-                      onChange={(e) =>
-                        onUpdateLiveApiConfig({ ...liveApiConfig, enabled: e.target.checked })
-                      }
-                      className="w-4 h-4 accent-purple-600"
-                    />
-                  </label>
-
-                  <div className="space-y-2.5">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        Sağlayıcı
-                      </label>
-                      <select
-                        value={liveApiConfig.provider}
-                        onChange={(e) =>
-                          onUpdateLiveApiConfig({
-                            ...liveApiConfig,
-                            provider: e.target.value as LiveApiConfig['provider'],
-                          })
-                        }
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/40 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white"
-                      >
-                        <option value="gemini">Google Gemini API</option>
-                        <option value="openai_compatible">OpenAI / Uyumlu API</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        API Anahtarı (Yalnızca tarayıcında saklanır)
-                      </label>
-                      <input
-                        type="password"
-                        value={liveApiConfig.apiKey}
-                        onChange={(e) =>
-                          onUpdateLiveApiConfig({ ...liveApiConfig, apiKey: e.target.value })
-                        }
-                        placeholder={liveApiConfig.provider === 'gemini' ? 'AIza...' : 'sk-...'}
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/40 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                        Model Adı (Opsiyonel)
-                      </label>
-                      <input
-                        type="text"
-                        value={liveApiConfig.modelName ?? ''}
-                        onChange={(e) =>
-                          onUpdateLiveApiConfig({ ...liveApiConfig, modelName: e.target.value })
-                        }
-                        placeholder={
-                          liveApiConfig.provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini'
-                        }
-                        className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/40 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white"
-                      />
-                    </div>
-
-                    {liveApiConfig.provider === 'openai_compatible' && (
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 dark:text-purple-100 mb-1">
-                          Base URL (Opsiyonel)
-                        </label>
-                        <input
-                          type="text"
-                          value={liveApiConfig.baseUrl ?? ''}
-                          onChange={(e) =>
-                            onUpdateLiveApiConfig({ ...liveApiConfig, baseUrl: e.target.value })
-                          }
-                          placeholder="https://api.openai.com/v1"
-                          className="w-full px-3 py-2 text-xs rounded-xl bg-white/85 dark:bg-black/40 border border-indigo-200 dark:border-purple-300/25 text-slate-900 dark:text-white"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Footer Actions */}
-            <div className="px-5 py-4 border-t border-indigo-200/60 dark:border-purple-300/15 space-y-2 bg-white/35 dark:bg-black/25">
+            {/* Footer */}
+            <div className="p-3.5 border-t border-[var(--win-border-soft)] bg-[var(--win-bg-soft)] space-y-2">
               {hasMessages && onReanalyzeLast && (
                 <button
                   type="button"
@@ -621,10 +626,10 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                     onReanalyzeLast();
                     onClose();
                   }}
-                  className="w-full liquid-glow-primary py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full retro-btn-primary py-2 font-retro text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  Son Görevi Güncel Plan &amp; Kotalarla Yeniden Analiz Et
+                  {t.reanalyzeLastBtn}
                 </button>
               )}
               <button
@@ -633,10 +638,10 @@ export const PlansDrawer: React.FC<PlansDrawerProps> = ({
                   onClose();
                   onOpenOnboarding();
                 }}
-                className="w-full glass-pill py-2 rounded-full text-xs font-semibold text-slate-700 dark:text-purple-100 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full retro-btn py-1.5 font-retro text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-purple-500 dark:text-pink-300" />
-                Tam Kurulum Sihirbazını Aç
+                <Wand2 className="w-3.5 h-3.5 text-[#ec4899]" />
+                {t.openSetupWizardBtn}
               </button>
             </div>
           </motion.aside>

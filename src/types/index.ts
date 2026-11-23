@@ -1,5 +1,7 @@
 export type ThemeMode = 'dark' | 'light';
 
+export type Language = 'tr' | 'en';
+
 export type PriorityMode = 'quality' | 'speed' | 'credit_saver';
 
 export type TaskDomain =
@@ -15,25 +17,40 @@ export type TaskDomain =
 
 export type ComplexityLevel = 'low' | 'medium' | 'high' | 'expert';
 
+export type SubModelEffort = 'light' | 'balanced' | 'heavy';
+
 export interface CapabilityScores {
-  coding: number;      // 1-10
-  reasoning: number;   // 1-10
-  research: number;    // 1-10
-  writing: number;     // 1-10
-  visual: number;      // 1-10
-  long_context: number;// 1-10
-  data_math: number;   // 1-10
-  speed: number;       // 1-10
-  valueFree: number;   // 1-10 (how generous/cost-effective)
+  coding: number;
+  reasoning: number;
+  research: number;
+  writing: number;
+  visual: number;
+  long_context: number;
+  data_math: number;
+  speed: number;
+  valueFree: number;
+}
+
+export interface SubModelOption {
+  id: string;
+  name: string;
+  effort: SubModelEffort;
+  minPaid?: boolean; // requires paid tier by default
+  creditTagTr: string;
+  creditTagEn: string;
+  bestForTr: string;
+  bestForEn: string;
 }
 
 export interface PlanTierOption {
   id: string;
-  label: string;
+  labelTr: string;
+  labelEn: string;
   isPaid: boolean;
-  qualityBoost: number;   // multiplier or additive boost
-  creditWeight: number;   // 0 = free, 1 = light paid, 2 = medium, 3 = heavy pro credit
-  constraints: string[];  // e.g. "Günlük mesaj limiti çabuk dolabilir", "Büyük PDF yükleme sınırlı"
+  qualityBoost: number;
+  creditWeight: number; // 0 = free, 1 = light paid, 2 = medium, 3 = heavy pro credit
+  constraintsTr: string[];
+  constraintsEn: string[];
 }
 
 export interface AIToolDefinition {
@@ -42,10 +59,20 @@ export interface AIToolDefinition {
   provider: string;
   url: string;
   accentColor: string;
-  badgeText: string;
-  tagline: string;
-  promptStyle: 'claude_xml' | 'gemini_structured' | 'chatgpt_spec' | 'perplexity_research' | 'midjourney_visual' | 'deepseek_reasoning' | 'generic';
+  badgeTextTr: string;
+  badgeTextEn: string;
+  taglineTr: string;
+  taglineEn: string;
+  promptStyle:
+    | 'claude_xml'
+    | 'gemini_structured'
+    | 'chatgpt_spec'
+    | 'perplexity_research'
+    | 'midjourney_visual'
+    | 'deepseek_reasoning'
+    | 'generic';
   tiers: PlanTierOption[];
+  subModels: SubModelOption[];
   scores: CapabilityScores;
   isCustom?: boolean;
 }
@@ -56,7 +83,8 @@ export interface UserPlanSelection {
   tierId: string;
   customTierName?: string;
   quotaReached: boolean;
-  // If user added a completely custom AI tool
+  enabledSubModelIds?: string[];
+  customSubModels?: string[]; // e.g., ["Hidrojen", "Karbon", "Neon"]
   customTool?: AIToolDefinition;
 }
 
@@ -67,16 +95,17 @@ export interface ComplexityBadgeData {
   summary: string;
   creditAdvice: 'save_credits' | 'balanced' | 'worth_pro';
   detectedDomains: string[];
-  estimatedEffortScore: number; // 1-100
+  estimatedEffortScore: number;
 }
 
 export interface RankedModelItem {
   toolId: string;
   name: string;
+  subModelName: string;
   provider: string;
   recommendedTierLabel: string;
   url: string;
-  score: number; // 0-100
+  score: number;
   accentColor: string;
   reasons: string[];
   isPaidTier: boolean;
@@ -86,6 +115,8 @@ export interface RankedModelItem {
 export interface UserStackOption {
   toolId: string;
   name: string;
+  subModelName: string;
+  subModelGuidance: string;
   tierLabel: string;
   url: string;
   score: number;
@@ -106,6 +137,7 @@ export interface ComboStep {
   stepNumber: number;
   title: string;
   recommendedModelName: string;
+  recommendedSubModel: string;
   recommendedToolId: string;
   recommendedUrl: string;
   isFromUserStack: boolean;
@@ -119,20 +151,26 @@ export interface StrategySectionData {
   description: string;
   equivalentModels?: string[];
   comboSteps?: ComboStep[];
+  finalVerdictLine: string;
 }
 
 export interface EnhancedPromptData {
   targetToolId: string;
   targetModelName: string;
+  targetSubModelName: string;
   targetUrl: string;
   targetTierLabel: string;
   formatStyleLabel: string;
   whyThisFormat: string;
+  originalInput: string;
+  cleanedInput: string;
+  typoFixesCount: number;
+  typoFixesList: Array<{ from: string; to: string }>;
   enhancedPrompt: string;
-  // Optional alternate prompt for Market #1 when user's #1 differs
   marketTopAlternative?: {
     targetToolId: string;
     targetModelName: string;
+    targetSubModelName: string;
     targetUrl: string;
     formatStyleLabel: string;
     enhancedPrompt: string;
@@ -142,6 +180,7 @@ export interface EnhancedPromptData {
 export interface AnalysisResult {
   id: string;
   createdAt: string;
+  language: Language;
   priorityMode: PriorityMode;
   engineSource: 'smart_local' | 'live_llm';
   complexityBadge: ComplexityBadgeData;

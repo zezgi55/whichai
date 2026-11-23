@@ -1,4 +1,4 @@
-import { AIToolDefinition, UserPlanSelection } from '../types';
+import { AIToolDefinition, Language, UserPlanSelection } from '../types';
 
 export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
   {
@@ -6,9 +6,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Gemini',
     provider: 'Google',
     url: 'https://gemini.google.com/app',
-    accentColor: '#60a5fa',
-    badgeText: '1M+ Bağlam & Çoklu Ortam',
-    tagline: 'Dev doküman, video/görsel analizi ve hızlı araştırma',
+    accentColor: '#4f7df3',
+    badgeTextTr: '1M+ Bağlam & Çoklu Ortam',
+    badgeTextEn: '1M+ Context & Multimodal',
+    taglineTr: 'Dev doküman, video/görsel analizi ve hızlı araştırma',
+    taglineEn: 'Massive documents, multimodal files, and fast research',
     promptStyle: 'gemini_structured',
     scores: {
       coding: 9.0,
@@ -21,36 +23,81 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 9.4,
       valueFree: 9.5,
     },
+    subModels: [
+      {
+        id: 'gemini_flash',
+        name: 'Gemini 2.5 Flash (Hidrojen)',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Çok Hızlı · Düşük Kredi',
+        creditTagEn: 'Ultra Fast · Low Credit',
+        bestForTr: 'Hızlı çeviri, özet, kısa yazım ve günlük pratik işler',
+        bestForEn: 'Quick translations, summaries, and daily lightweight tasks',
+      },
+      {
+        id: 'gemini_pro',
+        name: 'Gemini 2.5 Pro (Karbon)',
+        effort: 'balanced',
+        minPaid: false,
+        creditTagTr: 'Dengeli · Uzun Bağlam',
+        creditTagEn: 'Balanced · Long Context',
+        bestForTr: 'Büyük PDF analizi, orta-ileri kodlama ve kapsamlı raporlar',
+        bestForEn: 'Large PDF analysis, coding, and structured reports',
+      },
+      {
+        id: 'gemini_thinking',
+        name: 'Gemini Pro Thinking (Neon)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Yüksek Muhakeme · Pro Kredi',
+        creditTagEn: 'Deep Reasoning · Pro Credit',
+        bestForTr: 'Ağır sistem mimarisi, derin araştırma ve çok aşamalı analiz',
+        bestForEn: 'Heavy system design, deep research, and multi-step reasoning',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Ücretsiz',
+        labelTr: 'Ücretsiz',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'Ücretsiz planda Deep Research ve en gelişmiş Pro muhakeme modelinde günlük kullanım limiti uygulanır.',
-          'Çok büyük dosya yığınlarında (10+ PDF) Pro/Ultra katmanına göre bağlam penceresi daha sınırlı kalabilir.',
+        constraintsTr: [
+          'Ücretsiz planda Deep Research ve Thinking/Neon katmanında günlük kullanım limiti uygulanır.',
+          'Çok büyük dosya yığınlarında (10+ PDF) Pro/Ultra katmanına göre bağlam penceresi sınırlı kalabilir.',
+        ],
+        constraintsEn: [
+          'Free tier applies daily limits on Deep Research and Thinking/Neon reasoning runs.',
+          'Large multi-PDF stacks may hit tighter context limits compared to Pro/Ultra.',
         ],
       },
       {
         id: 'pro',
-        label: 'Pro (AI Pro)',
+        labelTr: 'Pro (AI Pro)',
+        labelEn: 'Pro (AI Pro)',
         isPaid: true,
         qualityBoost: 0.75,
         creditWeight: 2,
-        constraints: [
-          'Derin Araştırma ve yüksek çözünürlüklü medya üretiminde yoğun kullanımda geçici hız sınırı olabilir.',
+        constraintsTr: [
+          'Derin Araştırma ve Thinking/Neon modunu basit işlerde değil, gerçekten ağır görevlerde kullanarak kotanı koru.',
+        ],
+        constraintsEn: [
+          'Save Deep Research and Thinking/Neon quota for heavy analysis rather than simple edits.',
         ],
       },
       {
         id: 'ultra',
-        label: 'Ultra',
+        labelTr: 'Ultra',
+        labelEn: 'Ultra',
         isPaid: true,
         qualityBoost: 1.15,
         creditWeight: 3,
-        constraints: [
-          'Ultra kredisi değerlidir; basit metin veya hızlı taslak işlerde Flash/ücretsiz katmanı tercih etmek daha verimlidir.',
+        constraintsTr: [
+          'Ultra kredisi değerlidir; basit metin veya hızlı taslak işlerde Flash (Hidrojen) alt modelini tercih et.',
+        ],
+        constraintsEn: [
+          'Ultra quota is premium; use Flash (Hydrogen) for quick drafts and lightweight tasks.',
         ],
       },
     ],
@@ -60,9 +107,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'ChatGPT',
     provider: 'OpenAI',
     url: 'https://chatgpt.com/',
-    accentColor: '#34d399',
-    badgeText: 'Çok Yönlü & Muhakeme',
-    tagline: 'Genel amaçlı üretim, veri analizi, ses ve gelişmiş muhakeme',
+    accentColor: '#2ba882',
+    badgeTextTr: 'Çok Yönlü & Muhakeme',
+    badgeTextEn: 'All-Rounder & Reasoning',
+    taglineTr: 'Genel amaçlı üretim, veri analizi, ses ve gelişmiş muhakeme',
+    taglineEn: 'Versatile generation, data analysis, voice, and deep reasoning',
     promptStyle: 'chatgpt_spec',
     scores: {
       coding: 9.3,
@@ -75,36 +124,81 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 8.7,
       valueFree: 8.0,
     },
+    subModels: [
+      {
+        id: 'gpt_4o_mini',
+        name: 'GPT-4o mini',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Hızlı · Ücretsiz Dostu',
+        creditTagEn: 'Fast · Credit-Friendly',
+        bestForTr: 'Kısa e-posta, dil bilgisi düzeltme ve hızlı soru-cevap',
+        bestForEn: 'Short emails, grammar polish, and rapid Q&A',
+      },
+      {
+        id: 'gpt_4o',
+        name: 'GPT-4o',
+        effort: 'balanced',
+        minPaid: false,
+        creditTagTr: 'Dengeli · Çok Yönlü',
+        creditTagEn: 'Balanced · Versatile',
+        bestForTr: 'Günlük yazım, görsel oluşturma, tablo ve dengeli kodlama',
+        bestForEn: 'Daily writing, image generation, tables, and solid coding',
+      },
+      {
+        id: 'o3_mini',
+        name: 'o3-mini / o3',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Ağır Muhakeme · Sınırlı Kota',
+        creditTagEn: 'Deep Reasoning · Limited Quota',
+        bestForTr: 'Zor algoritmalar, matematik, finansal modelleme ve mimari',
+        bestForEn: 'Hard algorithms, math, financial modeling, and architecture',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Free',
+        labelTr: 'Free',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'ChatGPT Free planında dosya yükleme, veri analizi ve gelişmiş muhakeme mesaj hakları kısa sürede dolup mini modele düşer.',
+        constraintsTr: [
+          'ChatGPT Free planında dosya yükleme ve GPT-4o mesaj hakkı kısa sürede dolup GPT-4o miniye düşer.',
           'Görsel oluşturma ve Deep Research hakları oldukça kısıtlıdır.',
+        ],
+        constraintsEn: [
+          'ChatGPT Free quickly falls back from GPT-4o to GPT-4o mini on heavy file/message usage.',
+          'Image generation and Deep Research limits are tight on Free.',
         ],
       },
       {
         id: 'plus',
-        label: 'Plus',
+        labelTr: 'Plus',
+        labelEn: 'Plus',
         isPaid: true,
         qualityBoost: 0.75,
         creditWeight: 2,
-        constraints: [
-          'Plus planında derin muhakeme (o-serisi) ve Deep Research haftalık/günlük kota sınırına tabidir; basit işlerde harcama.',
+        constraintsTr: [
+          'Plus planında o3 / o1 derin muhakeme haftalık/günlük kota sınırına tabidir; basit işlerde harcama.',
+        ],
+        constraintsEn: [
+          'Plus limits weekly/daily o3/o1 reasoning messages; reserve them for hard problems.',
         ],
       },
       {
         id: 'pro',
-        label: 'Pro',
+        labelTr: 'Pro',
+        labelEn: 'Pro',
         isPaid: true,
         qualityBoost: 1.2,
         creditWeight: 3,
-        constraints: [
-          'Pro muhakeme modları yüksek gecikmeyle çalışır; hızlı günlük sorularda standart hızlı modeli seç.',
+        constraintsTr: [
+          'Pro muhakeme modları daha uzun düşünme süresine sahiptir; hızlı işlerde GPT-4o veya mini seç.',
+        ],
+        constraintsEn: [
+          'Pro reasoning modes take longer to think; use GPT-4o or mini when you need speed.',
         ],
       },
     ],
@@ -114,9 +208,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Claude',
     provider: 'Anthropic',
     url: 'https://claude.ai/new',
-    accentColor: '#f59e0b',
-    badgeText: 'Kodlama & Doğal Yazım',
-    tagline: 'Temiz yazılım mimarisi, ince nüanslı Türkçe/İngilizce yazım',
+    accentColor: '#d97706',
+    badgeTextTr: 'Kodlama & Doğal Yazım',
+    badgeTextEn: 'Coding & Natural Writing',
+    taglineTr: 'Temiz yazılım mimarisi, ince nüanslı Türkçe/İngilizce yazım',
+    taglineEn: 'Clean software architecture and human-sounding nuanced writing',
     promptStyle: 'claude_xml',
     scores: {
       coding: 9.9,
@@ -129,36 +225,81 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 8.4,
       valueFree: 7.2,
     },
+    subModels: [
+      {
+        id: 'claude_haiku',
+        name: 'Claude 3.5 Haiku',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Çok Hızlı · Minimum Kota',
+        creditTagEn: 'Snappy · Minimal Quota',
+        bestForTr: 'Kısa düzeltmeler, hızlı çeviri ve basit metin taslakları',
+        bestForEn: 'Quick edits, translations, and simple drafts',
+      },
+      {
+        id: 'claude_sonnet',
+        name: 'Claude Sonnet 4',
+        effort: 'balanced',
+        minPaid: false,
+        creditTagTr: 'En İyi F/P · Günlük Güç',
+        creditTagEn: 'Best Value · Daily Workhorse',
+        bestForTr: 'Üretim seviyesi kodlama, makale, strateji ve temiz refactor',
+        bestForEn: 'Production coding, writing, strategy, and clean refactoring',
+      },
+      {
+        id: 'claude_opus',
+        name: 'Claude Opus 4 (Thinking)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Ağır Kredi · Zirve Derinlik',
+        creditTagEn: 'Heavy Credit · Peak Depth',
+        bestForTr: 'Kritik sistem tasarımı, çok karmaşık bug avı ve derin analiz',
+        bestForEn: 'Critical system design, gnarly debugging, and deep synthesis',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Free',
+        labelTr: 'Free',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'Claude Free planında 5 saatlik pencerede mesaj limiti çok hızlı dolar; uzun sohbetlerde tek seferde net prompt ver.',
-          'Büyük dosya ekleri ücretsiz planda mesaj kotanı çok hızlı tüketir.',
+        constraintsTr: [
+          'Claude Free planında 5 saatlik pencerede mesaj limiti çok hızlı dolar; tek seferde net prompt ver.',
+          'Büyük dosya ekleri ücretsiz planda mesaj kotanı hızla tüketir.',
+        ],
+        constraintsEn: [
+          'Claude Free hits its 5-hour message cap quickly; pack full context into one clean prompt.',
+          'Large file attachments consume Free message quota rapidly.',
         ],
       },
       {
         id: 'pro',
-        label: 'Pro',
+        labelTr: 'Pro',
+        labelEn: 'Pro',
         isPaid: true,
         qualityBoost: 0.85,
         creditWeight: 2,
-        constraints: [
-          'Claude Pro kotası uzun bağlamlı kod sohbetlerinde 5 saatlik pencere dolumuna takılabilir; yeni konular için yeni sohbet aç.',
+        constraintsTr: [
+          'Claude Pro kotası Opus kullanımında çok hızlı dolar; günlük kodlama ve yazım için Sonnet 4 kullan.',
+        ],
+        constraintsEn: [
+          'Opus burns Claude Pro 5-hour limits fast; stick to Sonnet 4 for everyday coding & writing.',
         ],
       },
       {
         id: 'max',
-        label: 'Max',
+        labelTr: 'Max',
+        labelEn: 'Max',
         isPaid: true,
         qualityBoost: 1.15,
         creditWeight: 3,
-        constraints: [
-          'Opus / derin düşünme modunu yalnızca karmaşık mimari veya kritik incelemelerde açarak hız ve kredi verimliliğini koru.',
+        constraintsTr: [
+          'Opus / Extended Thinking modunu sadece gerçekten zor mimari veya kritik incelemelerde aç.',
+        ],
+        constraintsEn: [
+          'Enable Opus / Extended Thinking only for hard architectural or high-stakes reviews.',
         ],
       },
     ],
@@ -168,9 +309,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Perplexity',
     provider: 'Perplexity AI',
     url: 'https://www.perplexity.ai/',
-    accentColor: '#22d3ee',
-    badgeText: 'Canlı Web & Kaynakça',
-    tagline: 'Güncel internet araştırması, doğrulanmış kaynaklar ve karşılaştırma',
+    accentColor: '#0ea5e9',
+    badgeTextTr: 'Canlı Web & Kaynakça',
+    badgeTextEn: 'Live Web & Citations',
+    taglineTr: 'Güncel internet araştırması, doğrulanmış kaynaklar ve karşılaştırma',
+    taglineEn: 'Real-time web search, verified citations, and market comparisons',
     promptStyle: 'perplexity_research',
     scores: {
       coding: 7.2,
@@ -183,25 +326,65 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 9.3,
       valueFree: 8.8,
     },
+    subModels: [
+      {
+        id: 'pplx_sonar_fast',
+        name: 'Sonar Fast',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Anlık Arama · Sınırsız',
+        creditTagEn: 'Instant Search · Unlimited',
+        bestForTr: 'Hızlı bilgi doğrulama ve güncel kısa sorgular',
+        bestForEn: 'Quick fact-checking and fast live web lookups',
+      },
+      {
+        id: 'pplx_sonar_pro',
+        name: 'Sonar Pro (Pro Search)',
+        effort: 'balanced',
+        minPaid: false,
+        creditTagTr: 'Çok Kaynaklı Arama',
+        creditTagEn: 'Multi-Source Search',
+        bestForTr: 'Rakip fiyat analizi, ürün karşılaştırma ve kaynaklı özet',
+        bestForEn: 'Competitor pricing, product comparisons, and cited summaries',
+      },
+      {
+        id: 'pplx_deep_research',
+        name: 'Perplexity Deep Research',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Derin Rapor · Kotalı',
+        creditTagEn: 'Deep Report · Quota Capped',
+        bestForTr: '30+ kaynak tarayan akademik/sektörel kapsamlı raporlar',
+        bestForEn: 'Exhaustive multi-dozen-source academic or industry reports',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Free',
+        labelTr: 'Free',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'Perplexity Free planında günlük Pro Search (derin tarama) ve dosya yükleme sayısı sınırlıdır.',
+        constraintsTr: [
+          'Perplexity Free planında günlük Pro Search (derin tarama) sayısı sınırlıdır.',
+        ],
+        constraintsEn: [
+          'Perplexity Free caps the number of daily Pro Searches.',
         ],
       },
       {
         id: 'pro',
-        label: 'Pro',
+        labelTr: 'Pro',
+        labelEn: 'Pro',
         isPaid: true,
         qualityBoost: 0.8,
         creditWeight: 1,
-        constraints: [
-          'Yaratıcı uzun metin veya çok dosyalı kod yazımı yerine kaynak doğrulama ve literatür taramasında en yüksek verimi verir.',
+        constraintsTr: [
+          'Uzun kod yazımı yerine güncel kaynak doğrulama ve literatür taramasında en yüksek verimi verir.',
+        ],
+        constraintsEn: [
+          'Best used for verified web research rather than multi-file code generation.',
         ],
       },
     ],
@@ -211,9 +394,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'DeepSeek',
     provider: 'DeepSeek',
     url: 'https://chat.deepseek.com/',
-    accentColor: '#818cf8',
-    badgeText: 'Ücretsiz Ağır Muhakeme',
-    tagline: 'Algoritma, matematik ve kodlamada yüksek fiyat/performans',
+    accentColor: '#6366f1',
+    badgeTextTr: 'Ücretsiz Ağır Muhakeme',
+    badgeTextEn: 'Free Heavy Reasoning',
+    taglineTr: 'Algoritma, matematik ve kodlamada yüksek fiyat/performans',
+    taglineEn: 'High-value algorithms, math, and technical reasoning',
     promptStyle: 'deepseek_reasoning',
     scores: {
       coding: 9.2,
@@ -226,25 +411,55 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 8.6,
       valueFree: 9.8,
     },
+    subModels: [
+      {
+        id: 'ds_v3',
+        name: 'DeepSeek-V3',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Ücretsiz · Çok Hızlı',
+        creditTagEn: 'Free · Very Fast',
+        bestForTr: 'Günlük kodlama, hızlı açıklama ve kredi dostu çözüm',
+        bestForEn: 'Everyday coding, fast explanations, and zero-cost tasks',
+      },
+      {
+        id: 'ds_r1',
+        name: 'DeepSeek-R1 (DeepThink)',
+        effort: 'heavy',
+        minPaid: false,
+        creditTagTr: 'Ücretsiz · Derin Mantık',
+        creditTagEn: 'Free · Deep Thinking',
+        bestForTr: 'Matematik, karmaşık algoritma ve adım adım mantık doğrulama',
+        bestForEn: 'Math proofs, complex algorithms, and step-by-step logic',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Ücretsiz',
+        labelTr: 'Ücretsiz',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0.15,
         creditWeight: 0,
-        constraints: [
-          'Yoğun saatlerde sunucu meşguliyeti yaşanabilir; gizli/kurumsal hassas veri paylaşımından kaçın.',
+        constraintsTr: [
+          'Yoğun saatlerde sunucu meşguliyeti olabilir; hassas kurumsal veri paylaşımından kaçın.',
+        ],
+        constraintsEn: [
+          'Peak hours may see busy servers; avoid pasting confidential corporate secrets.',
         ],
       },
       {
         id: 'api_pro',
-        label: 'API / Pro',
+        labelTr: 'API / Pro',
+        labelEn: 'API / Pro',
         isPaid: true,
         qualityBoost: 0.55,
         creditWeight: 1,
-        constraints: [
-          'Görsel üretimi desteklemez; metin, algoritma ve matematiksel mantıkta maksimum kredi tasarrufu sağlar.',
+        constraintsTr: [
+          'Görsel üretmez; metin, algoritma ve matematikte en yüksek tasarrufu sağlar.',
+        ],
+        constraintsEn: [
+          'Text/code only (no image gen); unbeatable cost efficiency on logic and math.',
         ],
       },
     ],
@@ -254,9 +469,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Midjourney',
     provider: 'Midjourney',
     url: 'https://www.midjourney.com/imagine',
-    accentColor: '#f472b6',
-    badgeText: 'Sinematik Görsel Sanat',
-    tagline: 'Estetik konsept tasarım, ürün çekimi, illüstrasyon ve UI ilhamı',
+    accentColor: '#ec4899',
+    badgeTextTr: 'Sinematik Görsel Sanat',
+    badgeTextEn: 'Cinematic Visual Art',
+    taglineTr: 'Estetik konsept tasarım, ürün çekimi, illüstrasyon ve UI ilhamı',
+    taglineEn: 'Editorial photography, concept design, illustration, and art direction',
     promptStyle: 'midjourney_visual',
     scores: {
       coding: 1.0,
@@ -269,35 +486,69 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 7.8,
       valueFree: 3.0,
     },
+    subModels: [
+      {
+        id: 'mj_relax',
+        name: 'Midjourney v6.1 (Relax)',
+        effort: 'light',
+        minPaid: true,
+        creditTagTr: 'GPU Kredisi Yemez',
+        creditTagEn: 'Zero Fast-GPU Cost',
+        bestForTr: 'Bol denemeli taslak konsept üretimi',
+        bestForEn: 'Iterative exploration without burning Fast GPU hours',
+      },
+      {
+        id: 'mj_fast',
+        name: 'Midjourney v6.1 / v7 (Fast)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Fast GPU · Final Kalite',
+        creditTagEn: 'Fast GPU · Final Polish',
+        bestForTr: 'Nihai kampanya görseli ve yüksek estetikli ürün çekimi',
+        bestForEn: 'Final campaign visuals and editorial product renders',
+      },
+    ],
     tiers: [
       {
         id: 'basic',
-        label: 'Basic',
+        labelTr: 'Basic',
+        labelEn: 'Basic',
         isPaid: true,
         qualityBoost: 0.4,
         creditWeight: 2,
-        constraints: [
-          'Basic planda aylık Fast GPU süresi (~3.3 saat) sınırlıdır; taslak denemelerde Vary/Reroll sayısını kontrollü tut.',
+        constraintsTr: [
+          'Basic planda aylık Fast GPU süresi (~3.3 saat) sınırlıdır; Vary/Reroll sayısını kontrollü tut.',
+        ],
+        constraintsEn: [
+          'Basic caps Fast GPU (~3.3 hrs/mo); avoid excessive rerolls.',
         ],
       },
       {
         id: 'standard',
-        label: 'Standard',
+        labelTr: 'Standard',
+        labelEn: 'Standard',
         isPaid: true,
         qualityBoost: 0.75,
         creditWeight: 1,
-        constraints: [
-          'Fast saatlerini korumak için seri denemelerde Relax Mode kullan.',
+        constraintsTr: [
+          'Fast saatlerini korumak için ilk denemelerde Relax Mode (v6.1) kullan.',
+        ],
+        constraintsEn: [
+          'Use Relax Mode for drafts to save Fast GPU hours for finals.',
         ],
       },
       {
         id: 'pro',
-        label: 'Pro',
+        labelTr: 'Pro',
+        labelEn: 'Pro',
         isPaid: true,
         qualityBoost: 1.0,
         creditWeight: 2,
-        constraints: [
-          'Metin tabanlı tipografi/logo yazılarında bazen ekstra düzeltme gerekebilir.',
+        constraintsTr: [
+          'Görsel içi uzun metin/tipografi gerektiğinde ChatGPT GPT-4o ile kombinlemek daha tutarlı olur.',
+        ],
+        constraintsEn: [
+          'For heavy in-image typography, pair with ChatGPT GPT-4o.',
         ],
       },
     ],
@@ -307,9 +558,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Cursor AI',
     provider: 'Anysphere',
     url: 'https://www.cursor.com/',
-    accentColor: '#c084fc',
-    badgeText: 'IDE & Çoklu Dosya Kod',
-    tagline: 'Tüm proje deposunu okuyarak kod yazma, refactor ve hata ayıklama',
+    accentColor: '#7c3aed',
+    badgeTextTr: 'IDE & Çoklu Dosya Kod',
+    badgeTextEn: 'IDE & Multi-File Coding',
+    taglineTr: 'Tüm proje deposunu okuyarak kod yazma, refactor ve hata ayıklama',
+    taglineEn: 'Repo-wide indexing, multi-file edits, and agentic refactoring',
     promptStyle: 'claude_xml',
     scores: {
       coding: 9.8,
@@ -322,25 +575,61 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 8.9,
       valueFree: 6.5,
     },
+    subModels: [
+      {
+        id: 'cursor_fast',
+        name: 'Cursor Auto / Fast',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Düşük İstek Maliyeti',
+        creditTagEn: 'Low Request Cost',
+        bestForTr: 'Tek dosyalı küçük düzenleme ve hızlı autocomplete',
+        bestForEn: 'Small single-file edits and quick refactors',
+      },
+      {
+        id: 'cursor_sonnet',
+        name: 'Claude Sonnet (Agent)',
+        effort: 'balanced',
+        minPaid: true,
+        creditTagTr: '1x Hızlı İstek · İdeal',
+        creditTagEn: '1x Fast Request · Ideal',
+        bestForTr: 'Çoklu dosya özellik geliştirme ve test yazımı',
+        bestForEn: 'Multi-file feature implementation and test writing',
+      },
+      {
+        id: 'cursor_max',
+        name: 'Opus / o3 (Max Mode)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Ekstra Kredi · Ağır İş',
+        creditTagEn: 'Premium Credit · Heavy',
+        bestForTr: 'Büyük mimari dönüşüm ve derin hata kök neden analizi',
+        bestForEn: 'Large architectural rewrites and deep root-cause debugging',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Hobby (Free)',
+        labelTr: 'Hobby (Free)',
+        labelEn: 'Hobby (Free)',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'Hobby planında aylık hızlı (fast) premium model istek hakkı oldukça kısıtlıdır.',
-        ],
+        constraintsTr: ['Hobby planında premium hızlı istek hakkı oldukça sınırlıdır.'],
+        constraintsEn: ['Hobby tier includes very limited fast premium requests.'],
       },
       {
         id: 'pro',
-        label: 'Pro',
+        labelTr: 'Pro',
+        labelEn: 'Pro',
         isPaid: true,
         qualityBoost: 0.85,
         creditWeight: 2,
-        constraints: [
-          'Aylık 500 hızlı istek kotasını basit tek satırlık sorular için değil, çoklu dosya düzenlemeleri için sakla.',
+        constraintsTr: [
+          'Aylık 500 hızlı isteği basit sorular yerine çoklu dosya kod düzenlemeleri için sakla.',
+        ],
+        constraintsEn: [
+          'Save your 500 monthly fast requests for multi-file edits instead of casual Q&A.',
         ],
       },
     ],
@@ -350,9 +639,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'NotebookLM',
     provider: 'Google',
     url: 'https://notebooklm.google.com/',
-    accentColor: '#a78bfa',
-    badgeText: 'Sıfır Halüsinasyon Doküman',
-    tagline: 'Yüklenen PDF, makale ve ders notlarına birebir dayalı analiz',
+    accentColor: '#5b6ee1',
+    badgeTextTr: 'Sıfır Halüsinasyon Doküman',
+    badgeTextEn: 'Source-Grounded Docs',
+    taglineTr: 'Yüklenen PDF, makale ve ders notlarına birebir dayalı analiz',
+    taglineEn: 'Strict source-grounded analysis for uploaded PDFs and notes',
     promptStyle: 'gemini_structured',
     scores: {
       coding: 5.5,
@@ -365,26 +656,52 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 8.8,
       valueFree: 9.6,
     },
+    subModels: [
+      {
+        id: 'nlm_std',
+        name: 'NotebookLM Standard',
+        effort: 'balanced',
+        minPaid: false,
+        creditTagTr: 'Ücretsiz · Kaynağa Sadık',
+        creditTagEn: 'Free · Strictly Grounded',
+        bestForTr: '50 kaynağa kadar PDF, ders notu ve makale sorgulama',
+        bestForEn: 'Querying up to 50 uploaded PDFs, papers, and study notes',
+      },
+      {
+        id: 'nlm_plus',
+        name: 'NotebookLM Plus (300 Kaynak)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Geniş Kütüphane',
+        creditTagEn: 'Expanded Library',
+        bestForTr: 'Dev araştırma arşivleri ve özelleştirilebilir çıktı tonları',
+        bestForEn: 'Massive research libraries and custom output styles',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Ücretsiz',
+        labelTr: 'Ücretsiz',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0.1,
         creditWeight: 0,
-        constraints: [
-          'Yalnızca yüklediğin kaynaklara odaklanır; dış web araştırması gerektiren sorular için Perplexity veya Gemini ile birleştir.',
+        constraintsTr: [
+          'Yalnızca yüklediğin kaynaklara odaklanır; canlı web araması için Perplexity veya Gemini ile birleştir.',
+        ],
+        constraintsEn: [
+          'Grounded strictly in uploaded files; pair with Perplexity/Gemini for live web info.',
         ],
       },
       {
         id: 'plus',
-        label: 'Plus',
+        labelTr: 'Plus',
+        labelEn: 'Plus',
         isPaid: true,
         qualityBoost: 0.5,
         creditWeight: 1,
-        constraints: [
-          'Kaynak başına 500.000 kelimeye kadar destekler; kod çalıştırma aracı barındırmaz.',
-        ],
+        constraintsTr: ['Kaynak başına 500.000 kelime destekler; canlı kod yürütme ortamı yoktur.'],
+        constraintsEn: ['Supports 500k words/source, but has no live code execution sandbox.'],
       },
     ],
   },
@@ -393,9 +710,11 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
     name: 'Grok',
     provider: 'xAI',
     url: 'https://grok.com/',
-    accentColor: '#e879f9',
-    badgeText: 'Anlık Sosyal & Trend',
-    tagline: 'X/sosyal medya nabzı, hızlı gündem analizi ve esprili ton',
+    accentColor: '#8b5cf6',
+    badgeTextTr: 'Anlık Sosyal & Trend',
+    badgeTextEn: 'Live Social & Trends',
+    taglineTr: 'X/sosyal medya nabzı, hızlı gündem analizi ve esprili ton',
+    taglineEn: 'Real-time X/social pulse, breaking news, and direct tone',
     promptStyle: 'chatgpt_spec',
     scores: {
       coding: 8.4,
@@ -408,25 +727,51 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
       speed: 9.1,
       valueFree: 8.2,
     },
+    subModels: [
+      {
+        id: 'grok_mini',
+        name: 'Grok 3 Mini',
+        effort: 'light',
+        minPaid: false,
+        creditTagTr: 'Çok Hızlı',
+        creditTagEn: 'Very Fast',
+        bestForTr: 'Hızlı gündem özeti ve kısa metin işleri',
+        bestForEn: 'Fast trend recaps and short text tasks',
+      },
+      {
+        id: 'grok_3',
+        name: 'Grok 3 (DeepSearch)',
+        effort: 'heavy',
+        minPaid: true,
+        creditTagTr: 'Derin Arama & Think',
+        creditTagEn: 'DeepSearch & Think',
+        bestForTr: 'Anlık sosyal medya + web araştırması ve teknik analiz',
+        bestForEn: 'Live social + web synthesis and technical analysis',
+      },
+    ],
     tiers: [
       {
         id: 'free',
-        label: 'Free',
+        labelTr: 'Free',
+        labelEn: 'Free',
         isPaid: false,
         qualityBoost: 0,
         creditWeight: 0,
-        constraints: [
-          'Ücretsiz planda 2 saatlik pencerede mesaj ve görsel üretim hakkı sınırlıdır.',
-        ],
+        constraintsTr: ['Ücretsiz planda 2 saatlik pencerede mesaj ve görsel hakkı sınırlıdır.'],
+        constraintsEn: ['Free tier applies 2-hour rolling message and image caps.'],
       },
       {
         id: 'supergrok',
-        label: 'SuperGrok',
+        labelTr: 'SuperGrok',
+        labelEn: 'SuperGrok',
         isPaid: true,
         qualityBoost: 0.7,
         creditWeight: 2,
-        constraints: [
-          'Akademik kaynakça gerektiren derin literatür taramalarında Perplexity veya Gemini daha yüksek tutarlılık sunar.',
+        constraintsTr: [
+          'Akademik kaynakça gerektiren derin literatür taramalarında Perplexity daha yüksek tutarlılık sunar.',
+        ],
+        constraintsEn: [
+          'For academic bibliography and scholarly citations, Perplexity is more consistent.',
         ],
       },
     ],
@@ -434,29 +779,69 @@ export const DEFAULT_AI_CATALOG: AIToolDefinition[] = [
 ];
 
 export const DEFAULT_USER_PLANS: UserPlanSelection[] = [
-  { toolId: 'gemini', enabled: true, tierId: 'pro', quotaReached: false },
-  { toolId: 'chatgpt', enabled: true, tierId: 'free', quotaReached: false },
-  { toolId: 'claude', enabled: true, tierId: 'pro', quotaReached: false },
-  { toolId: 'perplexity', enabled: true, tierId: 'free', quotaReached: false },
-  { toolId: 'deepseek', enabled: true, tierId: 'free', quotaReached: false },
+  {
+    toolId: 'gemini',
+    enabled: true,
+    tierId: 'pro',
+    quotaReached: false,
+    enabledSubModelIds: ['gemini_flash', 'gemini_pro', 'gemini_thinking'],
+  },
+  {
+    toolId: 'chatgpt',
+    enabled: true,
+    tierId: 'free',
+    quotaReached: false,
+    enabledSubModelIds: ['gpt_4o_mini', 'gpt_4o'],
+  },
+  {
+    toolId: 'claude',
+    enabled: true,
+    tierId: 'pro',
+    quotaReached: false,
+    enabledSubModelIds: ['claude_haiku', 'claude_sonnet', 'claude_opus'],
+  },
+  {
+    toolId: 'perplexity',
+    enabled: true,
+    tierId: 'free',
+    quotaReached: false,
+    enabledSubModelIds: ['pplx_sonar_fast', 'pplx_sonar_pro'],
+  },
+  {
+    toolId: 'deepseek',
+    enabled: true,
+    tierId: 'free',
+    quotaReached: false,
+    enabledSubModelIds: ['ds_v3', 'ds_r1'],
+  },
   { toolId: 'midjourney', enabled: false, tierId: 'basic', quotaReached: false },
   { toolId: 'cursor', enabled: false, tierId: 'pro', quotaReached: false },
-  { toolId: 'notebooklm', enabled: true, tierId: 'free', quotaReached: false },
+  {
+    toolId: 'notebooklm',
+    enabled: true,
+    tierId: 'free',
+    quotaReached: false,
+    enabledSubModelIds: ['nlm_std'],
+  },
   { toolId: 'grok', enabled: false, tierId: 'free', quotaReached: false },
 ];
 
 export interface StarterPreset {
   id: string;
-  label: string;
-  description: string;
+  labelTr: string;
+  labelEn: string;
+  descTr: string;
+  descEn: string;
   plans: Array<{ toolId: string; enabled: boolean; tierId: string }>;
 }
 
 export const ONBOARDING_PRESETS: StarterPreset[] = [
   {
     id: 'free_only',
-    label: 'Sadece Ücretsizler',
-    description: 'Sıfır abonelikle maksimum verim',
+    labelTr: 'Sadece Ücretsizler',
+    labelEn: 'Free Stack Only',
+    descTr: 'Sıfır abonelikle maksimum verim',
+    descEn: 'Maximum value with zero paid plans',
     plans: [
       { toolId: 'gemini', enabled: true, tierId: 'free' },
       { toolId: 'chatgpt', enabled: true, tierId: 'free' },
@@ -471,8 +856,10 @@ export const ONBOARDING_PRESETS: StarterPreset[] = [
   },
   {
     id: 'developer',
-    label: 'Geliştirici Paketi',
-    description: 'Claude Pro + Cursor Pro + Gemini',
+    labelTr: 'Geliştirici Paketi',
+    labelEn: 'Developer Stack',
+    descTr: 'Claude Pro + Cursor Pro + Gemini',
+    descEn: 'Claude Pro + Cursor Pro + Gemini',
     plans: [
       { toolId: 'claude', enabled: true, tierId: 'pro' },
       { toolId: 'cursor', enabled: true, tierId: 'pro' },
@@ -487,8 +874,10 @@ export const ONBOARDING_PRESETS: StarterPreset[] = [
   },
   {
     id: 'creator',
-    label: 'İçerik & Tasarım',
-    description: 'ChatGPT Plus + Midjourney + Gemini',
+    labelTr: 'İçerik & Tasarım',
+    labelEn: 'Creator & Design',
+    descTr: 'ChatGPT Plus + Midjourney + Gemini',
+    descEn: 'ChatGPT Plus + Midjourney + Gemini',
     plans: [
       { toolId: 'chatgpt', enabled: true, tierId: 'plus' },
       { toolId: 'midjourney', enabled: true, tierId: 'standard' },
@@ -503,8 +892,10 @@ export const ONBOARDING_PRESETS: StarterPreset[] = [
   },
   {
     id: 'power_user',
-    label: 'Full Pro Paket',
-    description: 'Tüm ana abonelikler aktif',
+    labelTr: 'Full Pro Paket',
+    labelEn: 'Full Pro Stack',
+    descTr: 'Tüm ana abonelikler aktif',
+    descEn: 'All major pro subscriptions active',
     plans: [
       { toolId: 'gemini', enabled: true, tierId: 'ultra' },
       { toolId: 'chatgpt', enabled: true, tierId: 'plus' },
@@ -519,25 +910,52 @@ export const ONBOARDING_PRESETS: StarterPreset[] = [
   },
 ];
 
-export const SAMPLE_STARTER_PROMPTS = [
-  {
-    badge: 'Düşük Efor · Tasarruf',
-    title: 'Kibar e-posta çevirisi',
-    prompt: 'Müşteriye proje tesliminin 2 gün gecikeceğini anlatan kısa ve kibar bir İngilizce e-posta yaz.',
-  },
-  {
-    badge: 'Ağır Muhakeme · Kod',
-    title: 'SaaS mimari & güvenlik',
-    prompt: 'Next.js, PostgreSQL ve Stripe kullanarak çok kiracılı (multi-tenant) bir SaaS abonelik mimarisi tasarla, webhook idempotency stratejisini belirle ve TypeScript servis kodunu yaz.',
-  },
-  {
-    badge: 'Combo · Araştırma + Rapor',
-    title: 'Rakip analizi & sunum',
-    prompt: '2026 yılındaki yapay zeka destekli CRM araçlarını güncel fiyat ve özelliklerine göre araştır, karşılaştırmalı bir tablo çıkar ve yatırımcılara yönelik 5 maddelik strateji metni hazırla.',
-  },
-  {
-    badge: 'Görsel · Kampanya',
-    title: 'Ürün çekimi konsepti',
-    prompt: 'Mor cam şişeli lüks lavanta parfümü için su damlacıklı, neon eflatun kenar ışıklı sinematik bir reklam görseli konsepti üret.',
-  },
-];
+export function getStarterPrompts(lang: Language) {
+  if (lang === 'en') {
+    return [
+      {
+        badge: 'Low Effort · Save Credits',
+        title: 'Polite client email (with typos)',
+        prompt: 'plz write a short polite email to teh client explaining our delivery will be 2 days late, dont sound too formal',
+      },
+      {
+        badge: 'Heavy Reasoning · Code',
+        title: 'SaaS architecture & security',
+        prompt: 'Design a multi-tenant SaaS billing architecture with Next.js, PostgreSQL, and Stripe, define webhook idempotency secruity rules, and write the TypeScript service code.',
+      },
+      {
+        badge: 'Combo · Research + Report',
+        title: 'Competitor analysis & pitch',
+        prompt: 'Research 2026 AI CRM tools with live pricing and feature comparision table, then write a 5-point investor strategy memo.',
+      },
+      {
+        badge: 'Visual · Concept Art',
+        title: 'Cozy retro desktop poster',
+        prompt: 'Create a dreamy pastel blue and periwinkle cozy retro desktop poster concept with fluffy clouds, tiny stars, and crisp pixel windows.',
+      },
+    ];
+  }
+
+  return [
+    {
+      badge: 'Düşük Efor · Yazım Düzeltme',
+      title: 'Kibar e-posta (yazım hatalı test)',
+      prompt: 'lutfen musteriye proje tesliminin 2 gun gecikecegini anlatan kisa ve kibar bir ingilzce eposta yazarmısın',
+    },
+    {
+      badge: 'Ağır Muhakeme · Kod',
+      title: 'SaaS mimari & güvenlik',
+      prompt: 'Next.js, PostgreSQL ve Stripe kullanarak çok kiracılı (multi-tenant) bir SaaS abonelik mimarisi tasarla, webhook idempotency güvenliğini belirle ve TypeScript servis kodunu yaz.',
+    },
+    {
+      badge: 'Combo · Araştırma + Rapor',
+      title: 'Rakip analizi & sunum',
+      prompt: '2026 yılındaki yapay zeka destekli CRM araçlarını güncel fiyat ve özelliklerine göre araştır, karşılaştırmalı bir tablo çıkar ve yatırımcılara yönelik 5 maddelik strateji metni hazırla.',
+    },
+    {
+      badge: 'Görsel · Konsept',
+      title: 'Retro-cozy afiş tasarımı',
+      prompt: 'Bebek mavisi bulutlu gökyüzü, küçük yıldızlar ve retro bilgisayar pencereleri içeren sıcak, estetik bir dijital poster görseli konsepti üret.',
+    },
+  ];
+}
