@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* =========================================================
+   DARK MODE — LIQUID GLASS AESTHETIC (Reference 1)
+   Deep violet-obsidian backdrop, iridescent purple/pink/ice-blue
+   specular glass edges, soft neon bloom, botanical subtlety.
+   ========================================================= */
+.dark body {
+  background-color: #0b0714;
+  color: #f3effc;
+}
+
+.theme-canvas-dark {
+  background:
+    radial-gradient(ellipse 68% 55% at 15% 12%, rgba(168, 85, 247, 0.22) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 48% at 88% 18%, rgba(125, 211, 252, 0.14) 0%, transparent 58%),
+    radial-gradient(ellipse 60% 50% at 75% 88%, rgba(244, 114, 182, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 12% 85%, rgba(139, 92, 246, 0.18) 0%, transparent 60%),
+    linear-gradient(155deg, #090611 0%, #120b20 45%, #160e26 75%, #0b0716 100%);
+}
+
+/* =========================================================
+   LIGHT MODE — DREAMY Y2K AESTHETIC (Reference 2)
+   Periwinkle, baby blue, lilac & cloud white sky gradient,
+   soft retro grid, translucent glass folders & chrome sheen.
+   ========================================================= */
+body {
+  background-color: #dcebff;
+  color: #1c1938;
+}
+
+.theme-canvas-light {
+  background:
+    radial-gradient(ellipse 60% 42% at 18% 14%, rgba(255, 255, 255, 0.78) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 45% at 85% 20%, rgba(152, 200, 255, 0.72) 0%, transparent 64%),
+    radial-gradient(ellipse 65% 50% at 50% 88%, rgba(213, 192, 255, 0.65) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 40% at 12% 76%, rgba(186, 224, 255, 0.7) 0%, transparent 60%),
+    linear-gradient(160deg, #b8d5ff 0%, #d4d3ff 42%, #e9dcff 72%, #cde4ff 100%);
+}
+
+/* Subtle Y2K sky grid for Light Mode */
+.y2k-grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.34) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.34) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 85% 65% at 25% 15%, black 10%, transparent 78%);
+}
+
+/* =========================================================
+   REFRACTIVE LIQUID GLASS & Y2K CHROME SURFACES
+   Used prominently on Sidebar, Model Cards, Badges, Buttons
+   ========================================================= */
+.glass-panel {
+  position: relative;
+  backdrop-filter: blur(22px) saturate(165%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(235, 244, 255, 0.45) 55%,
+    rgba(232, 221, 255, 0.54) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 6px rgba(147, 179, 255, 0.25),
+    0 10px 30px -10px rgba(96, 120, 210, 0.22);
+}
+
+.dark .glass-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 20, 52, 0.72) 0%,
+    rgba(19, 13, 35, 0.64) 55%,
+    rgba(26, 16, 44, 0.74) 100%
+  );
+  border: 1px solid rgba(216, 180, 254, 0.28);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.28),
+    inset 1px 0 6px rgba(125, 211, 252, 0.14),
+    inset -1px -1px 8px rgba(244, 114, 182, 0.16),
+    0 12px 34px -10px rgba(4, 2, 12, 0.75),
+    0 0 18px -6px rgba(192, 132, 252, 0.22);
+}
+
+/* Signature Liquid Glass Specular Rim Card (Model Cards, Podiums, Sidebar Widgets) */
+.liquid-card {
+  position: relative;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.74) 0%,
+    rgba(232, 241, 255, 0.56) 52%,
+    rgba(236, 224, 255, 0.64) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 8px rgba(140, 175, 255, 0.26),
+    0 10px 26px -10px rgba(99, 123, 214, 0.24);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.liquid-card:hover {
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 1),
+    inset 0 -2px 10px rgba(140, 175, 255, 0.36),
+    0 14px 32px -10px rgba(112, 118, 224, 0.34);
+}
+
+.dark .liquid-card {
+  background: linear-gradient(
+    145deg,
+    rgba(42, 28, 70, 0.62) 0%,
+    rgba(20, 14, 36, 0.78) 55%,
+    rgba(35, 21, 58, 0.68) 100%
+  );
+  border: 1px solid rgba(233, 213, 255, 0.26);
+  box-shadow:
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.35),
+    inset 2px 0 10px rgba(125, 211, 252, 0.16),
+    inset -2px -2px 12px rgba(244, 114, 182, 0.2),
+    0 14px 30px -12px rgba(0, 0, 0, 0.8),
+    0 0 22px -6px rgba(192, 132, 252, 0.28);
+}
+
+.dark .liquid-card:hover {
+  border-color: rgba(240, 171, 252, 0.48);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.48),
+    inset 2px 0 14px rgba(125, 211, 252, 0.24),
+    inset -2px -2px 14px rgba(244, 114, 182, 0.28),
+    0 16px 36px -10px rgba(0, 0, 0, 0.85),
+    0 0 28px -4px rgba(192, 132, 252, 0.38);
+}
+
+/* Refractive iridescent highlight border for #1 Podium & Primary CTAs */
+.liquid-glow-primary {
+  position: relative;
+  background: linear-gradient(135deg, #6366f1 0%, #9333ea 52%, #ec4899 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.72),
+    inset 0 -2px 6px rgba(59, 7, 100, 0.28),
+    0 8px 22px -6px rgba(139, 92, 246, 0.55);
+  transition: transform 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.liquid-glow-primary:hover {
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 1.5px 3px rgba(255, 255, 255, 0.85),
+    0 10px 28px -4px rgba(168, 85, 247, 0.68),
+    0 0 18px rgba(244, 114, 182, 0.35);
+}
+
+.dark .liquid-glow-primary {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.88) 0%, rgba(217, 70, 239, 0.82) 52%, rgba(96, 165, 250, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 8px rgba(125, 211, 252, 0.35),
+    0 8px 26px -4px rgba(192, 132, 252, 0.55),
+    0 0 22px -4px rgba(244, 114, 182, 0.4);
+}
+
+/* Pearlescent / Chrome Pill Button (Y2K Light & Liquid Orb Dark) */
+.glass-pill {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(230, 240, 255, 0.72) 55%,
+    rgba(241, 232, 255, 0.82) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 1),
+    inset 0 -1.5px 3px rgba(147, 179, 255, 0.3),
+    0 4px 12px -4px rgba(100, 120, 210, 0.22);
+  transition: all 0.18s ease;
+}
+
+.glass-pill:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(235, 244, 255, 0.86) 100%
+  );
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 1),
+    0 6px 16px -4px rgba(114, 118, 224, 0.32);
+}
+
+.dark .glass-pill {
+  background: linear-gradient(
+    145deg,
+    rgba(46, 31, 78, 0.7) 0%,
+    rgba(22, 16, 40, 0.78) 100%
+  );
+  border: 1px solid rgba(216, 180, 254, 0.3);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.28),
+    inset 0 -1px 6px rgba(125, 211, 252, 0.12),
+    0 4px 14px -4px rgba(0, 0, 0, 0.55);
+}
+
+.dark .glass-pill:hover {
+  border-color: rgba(244, 114, 182, 0.45);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    0 0 16px -4px rgba(192, 132, 252, 0.42);
+}
+
+/* =========================================================
+   CALM, HIGH-CONTRAST READING SURFACE (CRITICAL UX RULE)
+   Used inside the main chat analysis cards and prompt reader
+   so eyes stay completely comfortable during long reads.
+   ========================================================= */
+.chat-reading-card {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(210, 222, 255, 0.9);
+  box-shadow: 0 4px 20px -8px rgba(88, 108, 185, 0.14);
+}
+
+.dark .chat-reading-card {
+  background: rgba(18, 14, 30, 0.86);
+  border: 1px solid rgba(192, 132, 252, 0.18);
+  box-shadow: 0 6px 24px -10px rgba(0, 0, 0, 0.65);
+}
+
+/* Y2K Glass Window Header Dots (Light Mode) */
+.y2k-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(100, 120, 200, 0.25);
+}
+
+/* Custom sleek scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.28);
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(192, 132, 252, 0.25);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* Subtle floating animation for decorative accents */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 3.4s ease-in-out infinite;
+}
